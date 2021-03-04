@@ -10,19 +10,18 @@ const pool = new Pool({
 });
 
 const args = process.argv.slice(2,4);
-console.log(args);
 
 pool.query(`
-  SELECT students.id as student_id, students.name as name, cohorts.name as cohort
-  FROM students
-  JOIN cohorts ON cohorts.id = cohort_id
-  WHERE cohorts.name LIKE '%${args[0]}%'
-  LIMIT ${Number(args[1]) || 5};
+  SELECT DISTINCT teachers.name AS name, cohorts.name AS cohort
+    FROM teachers
+    JOIN assistance_requests ON teachers.id = teacher_id
+    JOIN students ON students.id = student_id
+    JOIN cohorts ON cohorts.id = cohort_id
+    WHERE cohorts.name = '${args[0] || 'JUL02'}'
+    ORDER BY teachers.name;
   `)
   .then((res) => {
-    res.rows.forEach((user) => {
-      console.log(`${user.name} has an id of ${user.student_id} and was in the ${user.cohort} cohort`);
-    });
+    res.rows.forEach((teacher) => console.log(`${teacher.cohort}: ${teacher.name}`));
   })
   .then(() => {
     pool.end().then(() => console.log('btw the pool party has ended'));
