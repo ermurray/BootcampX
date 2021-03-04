@@ -10,16 +10,19 @@ const pool = new Pool({
 });
 
 const args = process.argv.slice(2,4);
+const qryStr = `
+SELECT DISTINCT teachers.name AS name, cohorts.name AS cohort
+  FROM teachers
+  JOIN assistance_requests ON teachers.id = teacher_id
+  JOIN students ON students.id = student_id
+  JOIN cohorts ON cohorts.id = cohort_id
+  WHERE cohorts.name = $1
+  ORDER BY teachers.name;
+`;
+const values = [`${args[0] || 'JUL02'}`];
 
-pool.query(`
-  SELECT DISTINCT teachers.name AS name, cohorts.name AS cohort
-    FROM teachers
-    JOIN assistance_requests ON teachers.id = teacher_id
-    JOIN students ON students.id = student_id
-    JOIN cohorts ON cohorts.id = cohort_id
-    WHERE cohorts.name = '${args[0] || 'JUL02'}'
-    ORDER BY teachers.name;
-  `)
+
+pool.query(qryStr, values)
   .then((res) => {
     res.rows.forEach((teacher) => console.log(`${teacher.cohort}: ${teacher.name}`));
   })
